@@ -1,7 +1,9 @@
-from flask import Flask
+from re import L
+from flask import Flask, request, abort
 import json
-from data import me
-from data import catalog
+import random
+from data import catalog, me
+
 
 app = Flask(__name__)
 
@@ -44,6 +46,28 @@ def get_catalog():
     return json.dumps(catalog)
 
 
+@app.post("/api/catalog")
+def post_catalog():
+    product = request.get_json()
+
+    # validating
+    if not "price" in product:
+        return abort(400, "ERROR: Invalid price")
+    if product["price"] < 1:
+        return abort(400, "ERROR: Price Should be higher than 1")
+
+    if not "title" in product:
+        return abort(400, "ERROR: Invalid title")
+
+    if len(product["title"]) < 5:
+        return abort(400, "ERROR: title needs to be at least 5 characters long")
+
+    # Assings a unique ID
+    product["_id"] = random.randint(6, 1000)
+    catalog.append(product)
+    return product
+
+
 @app.get("/api/product/<id>")
 def get_product_by_id(id):
     for x in catalog:
@@ -82,6 +106,37 @@ def cat_cheapest():
         if x["price"] < cheapest["price"]:
             cheapest = x
     return json.dumps(cheapest)
+
+
+# play rock , paper and scissors
+@app.get("/api/game/<pick>")
+def gamer(pick):
+
+    number = random.randint(1, 3)
+    if number == 1:
+        pick2 = "rock"
+    elif number == 2:
+        pick2 = "paper"
+    elif number == 3:
+        pick2 = "scissors"
+
+    if pick == "paper" and pick2 == "rock":
+        winner = "Player"
+    elif pick2 == "paper" and pick == "rock":
+        winner = "PC"
+    elif pick == "rock" and pick2 == "scissors":
+        winner = "Player"
+    elif pick2 == "rock" and pick == "scissors":
+        winner = "PC"
+    elif pick == "scissors" and pick2 == "paper":
+        winner = "Player"
+    elif pick2 == "scissors" and pick == "paper":
+        winner = "PC"
+    elif pick == pick2:
+        winner = "Draw"
+    results = {"you": pick, "PC": pick2, "Winner": winner}
+
+    return json.dumps(results)
 
 
 # app.run(debug=True)

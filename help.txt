@@ -9,7 +9,8 @@ python -m venv venv
 
 # activate venv
 win:
-venv\Scripts\activate
+
+
 
 mac lin:
 source venv/bin/activate
